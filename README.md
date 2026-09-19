@@ -23,14 +23,15 @@ Links to the framework paper and EduBehaviors-Studio repository will be added wh
 
 ## Assertions
 
-See the [assertions page](https://scale-nssa.github.io/edubehaviors-kit/assertions/) for the published
-assertion classifiers with their agreement and test F1 scores.
+See the [assertions page](https://scale-nssa.github.io/edubehaviors-kit/assertions/) for the list of published
+assertion classifiers with their cross-LLM agreement and test F1 scores.
 
 ## Usage
 
 ### Quickstart
 
-[Example script](https://colab.research.google.com/github/scale-nssa/edubehaviors-kit/blob/main/examples/example.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/scale-nssa/edubehaviors-kit/blob/main/examples/example.ipynb)
+[Demo script](https://colab.research.google.com/github/scale-nssa/edubehaviors-kit/blob/main/examples/example.ipynb)
 
 ```python
 import pandas as pd
