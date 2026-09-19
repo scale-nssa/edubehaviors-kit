@@ -1,5 +1,7 @@
 [build-system]
-requires = ["hatchling"]
+# hatchling 1.32 emits Metadata-Version 2.5, which the twine bundled in
+# pypa/gh-action-pypi-publish cannot yet parse. Unpin once it can.
+requires = ["hatchling<1.32"]
 build-backend = "hatchling.build"
 
 [project]
