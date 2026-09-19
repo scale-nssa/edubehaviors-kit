@@ -1,14 +1,15 @@
 [project]
 site_name = "EduBehaviors-Kit"
-site_url = "https://xanderbeberman.github.io/edubehaviors/"
-repo_url = "https://github.com/xanderbeberman/edubehaviors"
-repo_name = "xanderbeberman/edubehaviors"
+site_url = "https://scale-nssa.github.io/edubehaviors-kit/"
+repo_url = "https://github.com/scale-nssa/edubehaviors-kit"
+repo_name = "scale-nssa/edubehaviors-kit"
 
 nav = [
-  { "Home" = "index.md" },
-  { "Installation" = "installation.md" },
-  { "Usage" = "usage.md" },
-  { "API Reference" = "api.md" },
+    { "Home" = "index.md" },
+    { "Installation" = "installation.md" },
+    { "Usage" = "usage.md" },
+    { "Assertions" = "assertions.md" },
+    { "API Reference" = "api.md" },
 ]
 
 [[project.theme.palette]]

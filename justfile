@@ -1,68 +1,20 @@
-# Justfile for edubehaviors-kit
-
 # Show available commands
 list:
     @just --list
 
-alias b := build
-alias c := clean
-alias d := docs-serve
-alias t := test
-alias tc := type-check
+# Generate project using defaults
+bake BAKE_OPTIONS="--no-input":  
+    cookiecutter {{BAKE_OPTIONS}} . --overwrite-if-exists
 
-# Type check the project with ty
-type-check:
-    uv run --python=3.13 ty check .
+# Watch template for changes and rebake automatically
+dev:
+    uv run python dev.py
 
-# Type check with concise output (one diagnostic per line)
-type-check-concise:
-    uv run --python=3.13 ty check --output-format=concise .
+# replay: BAKE_OPTIONS="--replay"
+# replay: watch
+# 	;
 
-# Type check in watch mode (rechecks on file changes)
-type-check-watch:
-    uv run --python=3.13 ty check --watch .
 
-# Run all the formatting, linting, and testing commands
-qa:
-    uv run --python=3.13 ruff format .
-    uv run --python=3.13 ruff check . --fix
-    uv run --python=3.13 ruff check --select I --fix .
-    uv run --python=3.13 ty check --output-format=concise .
-    uv run --python=3.13 pytest .
-
-# Run all the tests for all the supported Python versions
-testall:
-    uv run --python=3.12 pytest
-    uv run --python=3.13 pytest
-    uv run --python=3.14 pytest
-
-# Run all the tests, but allow for arguments to be passed
-test *ARGS:
-    @echo "Running with arg: {{ARGS}}"
-    uv run --python=3.13 pytest {{ARGS}}
-
-# Run all the tests, but on failure, drop into the debugger
-pdb *ARGS:
-    @echo "Running with arg: {{ARGS}}"
-    uv run --python=3.13 pytest --pdb --maxfail=10 {{ARGS}}
-
-# Run tests with coverage across all supported Python versions
-coverage:
-    uv run --python=3.12 coverage run -m pytest
-    uv run --python=3.13 coverage run -m pytest
-    uv run --python=3.14 coverage run -m pytest
-    uv run --python=3.13 coverage combine
-    uv run --python=3.13 coverage report
-    uv run --python=3.13 coverage html
-
-# Serve docs locally with live reload
-docs-serve:
-    -lsof -ti :8000 | xargs kill
-    uv run --group docs zensical serve
-
-# Build docs (strict mode, fails on warnings)
-docs-build:
-    uv run --group docs zensical build --clean
 
 # Build the project, useful for checking that packaging is correct
 build:
@@ -70,15 +22,64 @@ build:
     rm -rf dist
     uv build
 
-# Tag, push, and create a GitHub release
+# Finalize release notes, tag, push, and create a GitHub release
 release:
     uv run scripts/release.py
 
+# Run all the tests, but allow for arguments to be passed
+test *ARGS:
+    @echo "Running with arg: {{ARGS}}"
+    uv run --python=3.14 pytest {{ARGS}}
+
+# Run all the tests, but on failure, drop into the debugger
+pdb *ARGS:
+    @echo "Running with arg: {{ARGS}}"
+    uv run --python=3.14 pytest --pdb --maxfail=10 {{ARGS}}
+
+# Apply automatic formatting and lint fixes
+fix:
+    uv run --python=3.14 ruff format .
+    uv run --python=3.14 ruff check . --fix
+
+# Verify formatting, linting, types, and tests on Python 3.14 without modifying source files
+check:
+    uv run --python=3.14 ruff format --check .
+    uv run --python=3.14 ruff check .
+    uv run --python=3.14 ty check .
+    uv run --python=3.14 pytest
+
+# Apply automatic fixes, then run the local quality gate
+fix-and-check: fix check
+
+# Compatibility alias for fix-and-check
+qa: fix-and-check
+
+# Compatibility alias for check
+ci: check
+
+# Run all the tests for all the supported Python versions
+testall:
+    uv run --python=3.12 pytest
+    uv run --python=3.13 pytest
+    uv run --python=3.14 pytest
+
+# Run coverage, and build to HTML
+coverage:
+    uv run --python=3.14 coverage run -m pytest
+    uv run --python=3.14 coverage report -m
+    uv run --python=3.14 coverage html
+
+# Serve docs locally with live reload
+docs-serve:
+    -lsof -ti :8000 | xargs kill
+    uv run --group docs zensical serve
+
+# Build docs
+docs-build:
+    uv run --group docs zensical build --clean
+
 # Remove all build, test, coverage and Python artifacts
-clean:
-	clean-build
-	clean-pyc
-	clean-test
+clean: clean-build clean-pyc clean-test clean-bake
 
 # Remove build artifacts
 clean-build:
@@ -102,7 +103,6 @@ clean-test:
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
 
-# Publish to PyPI (manual alternative to GitHub Actions)
-publish:
-    uv build
-    uv publish
+# Remove baked project output
+clean-bake:
+	rm -fr python-boilerplate/

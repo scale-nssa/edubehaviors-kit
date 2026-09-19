@@ -8,19 +8,34 @@ version = "0.1.0"
 description = "Python code for predicting and training with the EduBehaviors framework"
 readme = "README.md"
 authors = [
-  {name = "Xander Beberman", email = "beberman@stanford.edu"}
+    { name = "Xander Beberman" },
+    { name = "Julian Bernado" },
+    { name = "Ana T. Ribeiro" },
 ]
-maintainers = [
-  {name = "Xander Beberman", email = "beberman@stanford.edu"}
-]
+maintainers = [{ name = "Xander Beberman" }]
 classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Linguistic",
     "Typing :: Typed",
-    # TODO: Add additional classifiers as needed
 ]
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
-  "typer",
-  "rich",
+    "setfit>=1.2.0",
+    "sentence-transformers>=2.3.0",
+    "torch",
+    # the published SetFit heads are pickled with 1.7.2; newer sklearn warns on unpickling
+    "scikit-learn==1.7.2",
+    "pandas>=2.2",
+    "tqdm",
 ]
 requires-python = ">= 3.12"
 
@@ -29,47 +44,39 @@ dev = [
     { include-group = "lint" },
     { include-group = "test" },
     { include-group = "typecheck" },
+    "python-dotenv>=1.2.3",
 ]
-lint = [
-    "ruff",
-]
-test = [
-    "coverage",
-    "pytest",
-]
-typecheck = [
-    "ty",
-]
-docs = [
-    "zensical",
-    "mkdocstrings-python",
-]
+lint = ["ruff"]
+test = ["coverage", "pytest"]
+typecheck = ["ty"]
+docs = ["zensical", "mkdocstrings-python"]
 
 [project.urls]
-bugs = "https://github.com/xanderbeberman/edubehaviors/issues"
-changelog = "https://github.com/xanderbeberman/edubehaviors/releases"
-documentation = "https://xanderbeberman.github.io/edubehaviors/"
-homepage = "https://github.com/xanderbeberman/edubehaviors"
-
-[project.scripts]
-edubehaviors = "edubehaviors.cli:app"
+bugs = "https://github.com/scale-nssa/edubehaviors-kit/issues"
+changelog = "https://github.com/scale-nssa/edubehaviors-kit/releases"
+documentation = "https://scale-nssa.github.io/edubehaviors-kit/"
+homepage = "https://github.com/scale-nssa/edubehaviors-kit"
 
 [tool.ty]
 # All rules are enabled as "error" by default; no need to specify unless overriding.
 # Example override: relax a rule for the entire project (uncomment if needed).
 # rules.TY015 = "warn"  # For invalid-argument-type, warn instead of error.
 
+[tool.ty.src]
+include = ["src", "tests"]
+exclude = ["assertions-fit", "**/*.ipynb"]
+
 [tool.ruff]
 line-length = 120
 
 [tool.ruff.lint]
 select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # Pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "UP",  # pyupgrade
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # Pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "UP", # pyupgrade
 ]
 
 [tool.coverage.run]
@@ -80,7 +87,6 @@ source = ["src/", "tests/"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 50
 exclude_also = [
     "if TYPE_CHECKING:",
     "if typing.TYPE_CHECKING:",
@@ -91,6 +97,9 @@ exclude_also = [
     "raise NotImplementedError",
     "\\.\\.\\.",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/edubehaviors"]
 
 [tool.uv]
 package = true
