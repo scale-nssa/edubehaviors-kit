@@ -2,11 +2,16 @@
 
 ![PyPI version](https://img.shields.io/pypi/v/edubehaviors-kit.svg)
 
-Python code for predicting and training with the EduBehaviors framework
+  
+EduBehaviors-kit is a Python package for annotating educational dialogues with observable behavioral indicators and using them to model more complex educational constructs. It implements the EduBehaviors Framework , combining LLM-generated annotations, efficient encoders, and interpretable machine learning to support scalable, low-cost analysis of student–educator conversations.   
+
+This toolkit complements EduBehaviors-Studio, an LLM-assisted interface for iterative, auditable development of assertion-based schemas from a construct codebook or definition and corpus annotation. Studio exports LLM-annotated assertions as CSV files, which can be used to train custom encoders or combined with the kit’s existing behavioral features for construct modeling.
+
+Links to the framework paper and EduBehaviors-Studio repository will be added when available.
 
 * GitHub: https://github.com/scale-nssa/edubehaviors-kit/
 * PyPI package: https://pypi.org/project/edubehaviors-kit/
-* Created by: **[Xander Beberman](https://github.com/xanderbeberman), [Julian Bernado](https://github.com/julian-bernado), and [Ana T. Ribeiro](https://github.com/anatrindaderibeiro) at [The SCALE Initiative at Stanford University](https://scale.stanford.edu/)**.
+* Created by: **[Xander Beberman](https://github.com/xanderbeberman), [Julian Bernado](https://github.com/julian-bernado), [Ana T. Ribeiro](https://github.com/anatrindaderibeiro), and Susanna Loeb at [The SCALE Initiative at Stanford University](https://scale.stanford.edu/)**.
 * Free software: MIT License
 
 ## Features
