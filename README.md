@@ -30,6 +30,8 @@ assertion classifiers with their agreement and test F1 scores.
 
 ### Quickstart
 
+[Example script](https://colab.research.google.com/github/scale-nssa/edubehaviors-kit/blob/main/examples/example.ipynb)
+
 ```python
 import pandas as pd
 
