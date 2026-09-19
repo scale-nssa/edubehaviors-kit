@@ -16,23 +16,23 @@ pip install edubehaviors-kit
 
 ## From source
 
-The source files for EduBehaviors-Kit can be downloaded from the [Github repo](https://github.com/xanderbeberman/edubehaviors).
+The source files for EduBehaviors-Kit can be downloaded from the [Github repo](https://github.com/scale-nssa/edubehaviors-kit).
 
 You can either clone the public repository:
 
 ```sh
-git clone https://github.com/xanderbeberman/edubehaviors
+git clone https://github.com/scale-nssa/edubehaviors-kit
 ```
 
-Or download the [tarball](https://github.com/xanderbeberman/edubehaviors/tarball/main):
+Or download the [tarball](https://github.com/scale-nssa/edubehaviors-kit/tarball/main):
 
 ```sh
-curl -OJL https://github.com/xanderbeberman/edubehaviors/tarball/main
+curl -OJL https://github.com/scale-nssa/edubehaviors-kit/tarball/main
 ```
 
 Once you have a copy of the source, you can install it with:
 
 ```sh
-cd edubehaviors
+cd edubehaviors-kit
 uv sync
 ```
