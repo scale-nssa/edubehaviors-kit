@@ -4,6 +4,7 @@ Every test here configures word features only, so the pipeline runs without down
 single assertion model.
 """
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -168,6 +169,34 @@ class TestValidation:
     def test_rejects_a_single_label(self, labelled_data: pd.DataFrame):
         with pytest.raises(ValueError, match="fewer than 2 distinct labels"):
             ClassificationPipeline(labelled_data.assign(label="question"), words=TEST_WORDS)
+
+    @pytest.mark.parametrize("missing", [np.nan, None, pd.NA])
+    def test_rejects_missing_labels(self, labelled_data: pd.DataFrame, missing: object):
+        labels = labelled_data["label"].astype("object")
+        labels.iloc[:3] = missing
+        with pytest.raises(ValueError, match="contains missing values"):
+            ClassificationPipeline(labelled_data.assign(label=labels), words=TEST_WORDS)
+
+    def test_rejects_missing_labels_before_annotating(
+        self, labelled_data: pd.DataFrame, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Annotation is the expensive step, so missing labels must fail ahead of it."""
+
+        def fail(*args: object, **kwargs: object) -> pd.DataFrame:
+            raise AssertionError("annotate() ran despite missing labels")
+
+        monkeypatch.setattr(ClassificationPipeline, "annotate", fail)
+        labels = labelled_data["label"].astype("object")
+        labels.iloc[:3] = np.nan
+        with pytest.raises(ValueError, match="contains missing values"):
+            ClassificationPipeline(labelled_data.assign(label=labels), words=TEST_WORDS)
+
+    def test_missing_labels_are_reported_before_too_few_labels(self, labelled_data: pd.DataFrame):
+        """nunique() skips NaN, so a sparse single-label column must not be blamed on the count."""
+        labels = pd.Series(["question"] * len(labelled_data), dtype="object")
+        labels.iloc[:3] = np.nan
+        with pytest.raises(ValueError, match="contains missing values"):
+            ClassificationPipeline(labelled_data.assign(label=labels), words=TEST_WORDS)
 
     def test_rejects_misaligned_prebuilt_features(self, pipeline: ClassificationPipeline, labelled_data: pd.DataFrame):
         shifted = pipeline.features.set_axis(labelled_data.index + 1)

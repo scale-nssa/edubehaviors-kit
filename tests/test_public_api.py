@@ -23,6 +23,11 @@ def test_exported_name_is_reachable(name: str):
     assert getattr(edubehaviors, name, None) is not None
 
 
+def test_version_matches_distribution_metadata():
+    """`__version__` is read from the install, so it cannot drift from the packaging metadata."""
+    assert edubehaviors.__version__ == importlib.metadata.version(DISTRIBUTION)
+
+
 def test_declared_console_scripts_are_importable():
     """Every declared entry point loads.
 

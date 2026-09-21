@@ -1,9 +1,13 @@
 """Top-level package for EduBehaviors-Kit."""
 
+from importlib.metadata import version
+
 from .annotation import AssertionAnnotator, WordAnnotator
 from .constants import DEFAULT_WORDS, EXISTING_ASSERTIONS, Assertion
 from .models import standard_classifier
 from .pipeline import ClassificationPipeline
+
+__version__ = version("edubehaviors-kit")
 
 __all__ = [
     "AssertionAnnotator",
