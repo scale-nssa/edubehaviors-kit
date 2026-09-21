@@ -210,6 +210,11 @@ class ClassificationPipeline:
 
         self.data = data
         self.outcome = data[label_column]
+        if self.outcome.isna().sum() > 0:
+            raise ValueError(
+                f"label column '{label_column}' contains missing values;"
+                " drop or fill them before instantiating pipeline"
+            )
         if self.outcome.nunique() < 2:
             raise ValueError(
                 f"label column '{label_column}' has fewer than 2 distinct labels; at least 2 are needed to fit"
