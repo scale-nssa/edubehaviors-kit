@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import weakref
+from types import SimpleNamespace
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -54,6 +57,9 @@ class StubSetFitModel:
 
     def __init__(self) -> None:
         self.device: object | None = None
+        # a SetFitModel references itself through its model card, so only the cycle collector
+        # frees it; mirror that so tests catch a released model that is never collected
+        self.model_card_data = SimpleNamespace(model=self)
 
     def to(self, device: object) -> StubSetFitModel:
         self.device = device
@@ -72,3 +78,23 @@ def stub_models(monkeypatch: pytest.MonkeyPatch) -> None:
     from edubehaviors.annotation import AssertionAnnotator
 
     monkeypatch.setattr(AssertionAnnotator, "_load_model", lambda self, assertion: StubSetFitModel())
+
+
+@pytest.fixture
+def loaded_stub_models(monkeypatch: pytest.MonkeyPatch) -> list[weakref.ref[StubSetFitModel]]:
+    """Replace model loading with `StubSetFitModel` like `stub_models`, recording each stub loaded.
+
+    Returns:
+        A weak reference to each stub, in load order, so tests can check which are still alive.
+    """
+    from edubehaviors.annotation import AssertionAnnotator
+
+    loaded: list[weakref.ref[StubSetFitModel]] = []
+
+    def load_model(annotator: AssertionAnnotator, assertion: str) -> StubSetFitModel:
+        model = StubSetFitModel()
+        loaded.append(weakref.ref(model))
+        return model
+
+    monkeypatch.setattr(AssertionAnnotator, "_load_model", load_model)
+    return loaded

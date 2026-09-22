@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import gc
 import re
 from collections import Counter
-from collections.abc import Generator, Iterable
-from contextlib import contextmanager
+from collections.abc import Iterable
 from typing import Literal, get_args
 
 import pandas as pd
@@ -189,7 +189,7 @@ class AssertionAnnotator:
 
     def _load_model(self, assertion: Assertion) -> SetFitModel:
         """Load one assertion's model onto the CPU.
-        Model is loaded onto device if available with `_on_device` when predicting.
+        `_predict_single` moves it to `self.device` while scoring.
 
         Args:
             assertion: The assertion whose model to load.
@@ -239,35 +239,13 @@ class AssertionAnnotator:
         if not self.lazy:
             self._load_models()
 
-    @contextmanager
-    def _on_device(self, assertion: Assertion) -> Generator[SetFitModel]:
-        """Make an assertion's model resident on `self.device` for the duration of the block.
-
-        On exit the model is released if `self.lazy` is set, and otherwise moved back to the
-        CPU, so at most one model occupies the accelerator at a time.
-
-        Args:
-            assertion: The assertion whose model to make resident.
-
-        Yields:
-            The model, on `self.device`.
-        """
-        model = self.models[assertion] if assertion in self.models else self._load_model(assertion)
-        model.to(self.device)
-        try:
-            yield model
-        finally:
-            if self.lazy:
-                # drop the last reference so the weights are freed; the caching allocator
-                # reuses the blocks for the next model, so no empty_cache() is needed
-                self.models.pop(assertion, None)
-            else:
-                self.models[assertion] = model.to("cpu")
-
     def _predict_single(
         self, inputs: list[str], assertion: Assertion, *, batch_size: int = 32, show_progress_bar: bool | None = None
     ) -> pd.Series:
         """Score inputs against a single assertion.
+
+        Models are stored on CPU and moved to to `self.device` during use.
+        If lazy, models are deleted from memory after runtime.
 
         Args:
             inputs: The texts to score.
@@ -278,9 +256,20 @@ class AssertionAnnotator:
         Returns:
             The positive-class probability per input, named after the assertion.
         """
-        with self._on_device(assertion) as model:
+        model = self.models[assertion] if assertion in self.models else self._load_model(assertion)
+        model.to(self.device)
+        try:
             output = model.predict_proba(inputs, batch_size=batch_size, show_progress_bar=show_progress_bar)
+        finally:
+            if not self.lazy:
+                self.models[assertion] = model.to("cpu")
         output = output[:, 1].tolist()
+        del model
+        if self.lazy:
+            # a SetFitModel references itself through its model card, so dropping the last
+            # reference does not free it; collect now so the caching allocator can reuse its
+            # blocks for the next model
+            gc.collect()
         return pd.Series(output, name=assertion)
 
     def predict_proba(

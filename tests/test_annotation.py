@@ -1,5 +1,8 @@
 """Smoke tests for the annotators."""
 
+import gc
+import weakref
+
 import pandas as pd
 import pytest
 
@@ -102,16 +105,38 @@ class TestAssertionAnnotator:
         annotator = AssertionAnnotator([EXISTING_ASSERTIONS[0]])
         pd.testing.assert_frame_equal(annotator.annotate(texts), annotator.predict(texts))
 
-    def test_lazy_annotator_releases_models_between_calls(self, stub_models: None, texts: list[str]):
-        annotator = AssertionAnnotator([EXISTING_ASSERTIONS[0]], lazy=True)
-        annotator.predict_proba(texts)
-        assert annotator.models == {}
+    def test_lazy_annotator_frees_each_model_after_use(
+        self, loaded_stub_models: list[weakref.ref[object]], texts: list[str]
+    ):
+        annotator = AssertionAnnotator(EXISTING_ASSERTIONS[:2], lazy=True)
+        # with automatic collection off, the self-referencing stubs are only freed if the
+        # annotator collects them itself
+        gc.disable()
+        try:
+            annotator.predict_proba(texts)
+        finally:
+            gc.enable()
+        assert [ref() for ref in loaded_stub_models] == [None, None]
 
     def test_eager_annotator_retains_models_on_the_cpu(self, stub_models: None, texts: list[str]):
         annotator = AssertionAnnotator([EXISTING_ASSERTIONS[0]], lazy=False)
         assert set(annotator.models) == {EXISTING_ASSERTIONS[0]}
         annotator.predict_proba(texts)
         assert annotator.models[EXISTING_ASSERTIONS[0]].device == "cpu"
+
+    def test_eager_annotator_returns_models_to_the_cpu_when_scoring_fails(
+        self, stub_models: None, monkeypatch: pytest.MonkeyPatch, texts: list[str]
+    ):
+        annotator = AssertionAnnotator([EXISTING_ASSERTIONS[0]], lazy=False)
+        model = annotator.models[EXISTING_ASSERTIONS[0]]
+
+        def fail(*args: object, **kwargs: object) -> None:
+            raise RuntimeError("out of memory")
+
+        monkeypatch.setattr(model, "predict_proba", fail)
+        with pytest.raises(RuntimeError, match="out of memory"):
+            annotator.predict_proba(texts)
+        assert model.device == "cpu"
 
     def test_keeps_the_index_of_the_input(self, stub_models: None):
         inputs = pd.Series(["Why?", "Sit down."], index=[4, 6])
