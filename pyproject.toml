@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "edubehaviors-kit"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python code for predicting and training with the EduBehaviors framework"
 readme = "README.md"
 authors = [
