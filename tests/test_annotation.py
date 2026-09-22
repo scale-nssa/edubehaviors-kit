@@ -124,6 +124,20 @@ class TestAssertionAnnotator:
         annotator.predict_proba(texts)
         assert annotator.models[EXISTING_ASSERTIONS[0]].device == "cpu"
 
+    def test_eager_annotator_returns_models_to_the_cpu_when_scoring_fails(
+        self, stub_models: None, monkeypatch: pytest.MonkeyPatch, texts: list[str]
+    ):
+        annotator = AssertionAnnotator([EXISTING_ASSERTIONS[0]], lazy=False)
+        model = annotator.models[EXISTING_ASSERTIONS[0]]
+
+        def fail(*args: object, **kwargs: object) -> None:
+            raise RuntimeError("out of memory")
+
+        monkeypatch.setattr(model, "predict_proba", fail)
+        with pytest.raises(RuntimeError, match="out of memory"):
+            annotator.predict_proba(texts)
+        assert model.device == "cpu"
+
     def test_keeps_the_index_of_the_input(self, stub_models: None):
         inputs = pd.Series(["Why?", "Sit down."], index=[4, 6])
         scored = AssertionAnnotator([EXISTING_ASSERTIONS[0]]).predict_proba(inputs)
