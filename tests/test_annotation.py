@@ -1,5 +1,8 @@
 """Smoke tests for the annotators."""
 
+import gc
+import weakref
+
 import pandas as pd
 import pytest
 
@@ -102,10 +105,18 @@ class TestAssertionAnnotator:
         annotator = AssertionAnnotator([EXISTING_ASSERTIONS[0]])
         pd.testing.assert_frame_equal(annotator.annotate(texts), annotator.predict(texts))
 
-    def test_lazy_annotator_releases_models_between_calls(self, stub_models: None, texts: list[str]):
-        annotator = AssertionAnnotator([EXISTING_ASSERTIONS[0]], lazy=True)
-        annotator.predict_proba(texts)
-        assert annotator.models == {}
+    def test_lazy_annotator_frees_each_model_after_use(
+        self, loaded_stub_models: list[weakref.ref[object]], texts: list[str]
+    ):
+        annotator = AssertionAnnotator(EXISTING_ASSERTIONS[:2], lazy=True)
+        # with automatic collection off, the self-referencing stubs are only freed if the
+        # annotator collects them itself
+        gc.disable()
+        try:
+            annotator.predict_proba(texts)
+        finally:
+            gc.enable()
+        assert [ref() for ref in loaded_stub_models] == [None, None]
 
     def test_eager_annotator_retains_models_on_the_cpu(self, stub_models: None, texts: list[str]):
         annotator = AssertionAnnotator([EXISTING_ASSERTIONS[0]], lazy=False)

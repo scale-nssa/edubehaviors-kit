@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gc
 import re
 from collections import Counter
 from collections.abc import Generator, Iterable
@@ -243,8 +244,9 @@ class AssertionAnnotator:
     def _on_device(self, assertion: Assertion) -> Generator[SetFitModel]:
         """Make an assertion's model resident on `self.device` for the duration of the block.
 
-        On exit the model is released if `self.lazy` is set, and otherwise moved back to the
-        CPU, so at most one model occupies the accelerator at a time.
+        On exit the model is moved back to the CPU, unless `self.lazy` is set. A lazy model is
+        not kept on the annotator, so once the block ends the caller holds its only reference
+        and must free it before the next model is loaded (see `_predict_single`).
 
         Args:
             assertion: The assertion whose model to make resident.
@@ -257,11 +259,7 @@ class AssertionAnnotator:
         try:
             yield model
         finally:
-            if self.lazy:
-                # drop the last reference so the weights are freed; the caching allocator
-                # reuses the blocks for the next model, so no empty_cache() is needed
-                self.models.pop(assertion, None)
-            else:
+            if not self.lazy:
                 self.models[assertion] = model.to("cpu")
 
     def _predict_single(
@@ -281,6 +279,12 @@ class AssertionAnnotator:
         with self._on_device(assertion) as model:
             output = model.predict_proba(inputs, batch_size=batch_size, show_progress_bar=show_progress_bar)
         output = output[:, 1].tolist()
+        del model
+        if self.lazy:
+            # a SetFitModel references itself through its model card, so dropping the last
+            # reference does not free it; collect now so the caching allocator can reuse its
+            # blocks for the next model
+            gc.collect()
         return pd.Series(output, name=assertion)
 
     def predict_proba(
