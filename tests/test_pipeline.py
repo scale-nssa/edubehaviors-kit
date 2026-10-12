@@ -150,7 +150,7 @@ class TestValidation:
 
     def test_rejects_a_single_assertion(self, labelled_data: pd.DataFrame):
         with pytest.raises(TypeError, match="not a single value"):
-            ClassificationPipeline(labelled_data, assertions="sentence_has_a_question")  # ty: ignore[invalid-argument-type]
+            ClassificationPipeline(labelled_data, assertions="contains_a_question")  # ty: ignore[invalid-argument-type]
 
     @pytest.mark.parametrize("test_size", [0.0, 1.0, 1.5])
     def test_rejects_a_test_size_outside_the_unit_interval(self, labelled_data: pd.DataFrame, test_size: float):
