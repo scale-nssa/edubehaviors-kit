@@ -38,11 +38,11 @@ import pandas as pd
 
 from edubehaviors import ClassificationPipeline
 
-data = pd.read_csv("examples/talkmoves_tutor.csv")
+data = pd.read_csv("examples/talkmoves.csv")
 pipeline = ClassificationPipeline(
     data,
     words="all",
-    assertions=["sentence_has_a_question"],
+    assertions=["contains_a_question"],
     label_column="label_press_for_reasoning",
     group_column="transcript",
     random_state=2026_09_17,
@@ -94,6 +94,6 @@ just qa
 
 ## Author
 
-EduBehaviors-Kit was created in 2026 by Xander Beberman, Julian Bernado, and Ana T. Ribeiro at The SCALE Initiative at Stanford University.
+EduBehaviors-Kit was created in 2026 by Xander Beberman, Julian Bernado, Ana T. Ribeiro, and Susanna Loeb at The SCALE Initiative at Stanford University.
 
 Built with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and the [audreyfeldroy/cookiecutter-pypackage](https://github.com/audreyfeldroy/cookiecutter-pypackage) project template.

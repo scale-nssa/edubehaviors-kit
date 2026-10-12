@@ -72,6 +72,10 @@ class TestAssertionAnnotator:
     def test_defaults_to_every_published_assertion(self):
         assert AssertionAnnotator().assertions == list(EXISTING_ASSERTIONS)
 
+    def test_every_assertion_fits_a_huggingface_repo_name(self):
+        # HuggingFace caps repo names at 96 characters
+        assert all(len(f"assertion_{a}") <= 96 for a in EXISTING_ASSERTIONS)
+
     def test_lazy_construction_loads_nothing(self):
         assert AssertionAnnotator([EXISTING_ASSERTIONS[0]]).models == {}
 

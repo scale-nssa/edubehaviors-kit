@@ -6,13 +6,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "edubehaviors-kit"
-version = "0.1.1"
+version = "0.2.0"
 description = "Python code for predicting and training with the EduBehaviors framework"
 readme = "README.md"
 authors = [
     { name = "Xander Beberman" },
     { name = "Julian Bernado" },
     { name = "Ana T. Ribeiro" },
+    { name = "Susanna Loeb" },
 ]
 maintainers = [{ name = "Xander Beberman" }]
 classifiers = [

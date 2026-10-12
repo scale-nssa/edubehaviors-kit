@@ -11,12 +11,12 @@ import pandas as pd
 
 from edubehaviors import ClassificationPipeline
 
-data = pd.read_csv("examples/talkmoves_tutor.csv")
+data = pd.read_csv("examples/talkmoves.csv")
 
 pipeline = ClassificationPipeline(
     data,
     words="all",  # every word in DEFAULT_WORDS
-    assertions=["sentence_has_a_question", "sentence_has_explanation_or_reasoning"],
+    assertions=["contains_a_question", "asks_one_or_more_students_for_their_reasoning"],
     label_column="label_press_for_reasoning",
     random_state=2026_09_17,
 )
@@ -36,7 +36,7 @@ must be requested:
 ```python
 ClassificationPipeline(data, words="all")  # every default word, no assertions
 ClassificationPipeline(data, words=["why", "how", "because"])  # just these words
-ClassificationPipeline(data, assertions=["sentence_has_a_question"])  # assertions only
+ClassificationPipeline(data, assertions=["contains_a_question"])  # assertions only
 ClassificationPipeline(data, words="all", assertions="all")  # everything
 ```
 
@@ -91,7 +91,7 @@ of their input. Each takes a list of words or assertions, or None for the full d
 from edubehaviors import AssertionAnnotator, WordAnnotator
 
 word_features = WordAnnotator().annotate(data.sentence)  # DEFAULT_WORDS
-annotator = AssertionAnnotator(["sentence_has_a_question"])
+annotator = AssertionAnnotator(["contains_a_question"])
 assertion_flags = annotator.annotate(data.sentence)  # same as predict()
 assertion_scores = annotator.predict_proba(data.sentence)  # probabilities instead
 ```
